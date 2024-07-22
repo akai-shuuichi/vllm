@@ -1,7 +1,7 @@
 [
     {
         "test_name": "llama8B_tp1",
-        "qps_list": [2,10,20],
+        "qps_list": [5,10,20],
         "common_parameters": {
             "model": "meta-llama/Meta-Llama-3-8B",
             "tp": 1,
@@ -39,7 +39,7 @@
     },
     {
         "test_name": "llama70B_tp4",
-        "qps_list": [2,10,20],
+        "qps_list": [5,10,20],
         "common_parameters": {
             "model": "meta-llama/Meta-Llama-3-70B-Instruct",
             "tp": 4,
@@ -77,7 +77,7 @@
     },
     {
         "test_name": "mixtral8x7B_tp2",
-        "qps_list": [2,10,20],
+        "qps_list": [5,10,20],
         "common_parameters": {
             "model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
             "tp": 2,
