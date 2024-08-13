@@ -7,12 +7,13 @@ import time
 import warnings
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 import openai
 import ray
 import requests
 from transformers import AutoTokenizer
+from typing_extensions import ParamSpec
 
 from vllm.distributed import (ensure_model_parallel_initialized,
                               init_distributed_environment)
@@ -50,7 +51,7 @@ VLLM_PATH = Path(__file__).parent.parent
 
 class RemoteOpenAIServer:
     DUMMY_API_KEY = "token-abc123"  # vLLM's OpenAI server does not need API key
-    MAX_SERVER_START_WAIT_S = 120  # wait for server to start for 120 seconds
+    MAX_START_WAIT_S = 120  # wait for server to start for 120 seconds
 
     def __init__(
         self,
@@ -85,7 +86,7 @@ class RemoteOpenAIServer:
                                      stdout=sys.stdout,
                                      stderr=sys.stderr)
         self._wait_for_server(url=self.url_for("health"),
-                              timeout=self.MAX_SERVER_START_WAIT_S)
+                              timeout=self.MAX_START_WAIT_S)
 
     def __enter__(self):
         return self
@@ -360,13 +361,17 @@ def wait_for_gpu_memory_to_clear(devices: List[int],
         time.sleep(5)
 
 
-def fork_new_process_for_each_test(f):
+_P = ParamSpec("_P")
+
+
+def fork_new_process_for_each_test(
+        f: Callable[_P, None]) -> Callable[_P, None]:
     """Decorator to fork a new process for each test function.
     See https://github.com/vllm-project/vllm/issues/7053 for more details.
     """
 
     @functools.wraps(f)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: _P.args, **kwargs: _P.kwargs) -> None:
         # Make the process the leader of its own process group
         # to avoid sending SIGTERM to the parent process
         os.setpgrp()
